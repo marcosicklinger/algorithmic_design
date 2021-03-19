@@ -192,64 +192,47 @@ def strassen_matrix_mult_memory(A: Matrix, B: Matrix) -> Matrix:
     # C21 = P3 + P4
     # C22 = P5 + P1 - P3 - P7
 
-    # S5
-    S1 = A11+A22
-    # S6
-    S2 = B11+B22
-    # P5
-    P = strassen_matrix_mult_memory(S1,S2)
-    # First quadrant of output
+    S1 = A11 + A22
+    S2 = B11 + B22
+    P = strassen_matrix_mult_memory(S1, S2)
     C11 = P
-    # Fourth quadrant of output
     C22 = P
-    # S4
-    S1 = B21-B11
-    # P4
-    P = strassen_matrix_mult_memory(A22,S1)
-    # Update first quadrant of output
-    C11 = C11+P
-    # Third quadrant of output
-    C21 = P
-    # S2
-    S1 = A11+A12
-    # P2
-    P = strassen_matrix_mult_memory(S1,B22)
-    # Update first quadrant of output
-    C11 = C11-P
-    # Second quadrant of output
+
+    S1 = A11 - A21
+    S2 = B11 + B12
+    P = strassen_matrix_mult_memory(S1, S2)
+    C22 = C22 - P
+
+    S1 = A12 - A22
+    S2 = B21 + B22
+    P = strassen_matrix_mult_memory(S1, S2)
+    C11 = C11 + P
+
+    S1 = A11 + A12
+    #S2 = B22.copy()
+    P = strassen_matrix_mult_memory(S1, B22.copy())
     C12 = P
-    # S7
-    S1 = A12-A22
-    # S8
-    S2 = B21+B22
-    # P6
-    P = strassen_matrix_mult_memory(S1,S2)
-    # Update first quadrant of output
-    C11 = C11+P
-    # S1
-    S1 = B12-B22
-    # P1
-    P = strassen_matrix_mult_memory(A11,S1)
-    # Update second quadrant of output
-    C12 = C12+P
-    # Update fourth quadrant of output
-    C22 = C22+P
-    # S3
-    S1 = A21+A22
-    # P3
-    P = strassen_matrix_mult_memory(S1,B11)
-    # Update third quadrant of output
-    C21 = C21+P
-    # Update fourth quadrant of output
-    C22 = C22-P
-    # S9
-    S1 = A11-A21
-    # S10
-    S2 = B11+B12
-    # P7
-    P = strassen_matrix_mult_memory(S1,S2)
-    # Update fourth quadrant of output
-    C22 = C22-P
+    C11 = C11 - P
+
+    S1 = B12 - B22
+    #S2 = A11.copy()
+    P = strassen_matrix_mult_memory(A11.copy(), S1)
+    C12 = C12 + P
+    C22 = C22 + P
+
+
+    S1 = A21 + A22
+    #S2 = B11.copy()
+    P = strassen_matrix_mult_memory(S1, B11.copy())
+    C21 = P
+    C22 = C22 - P
+
+
+    S2 = B21 - B11
+    #S1 = A22.copy()
+    P = strassen_matrix_mult_memory(A22.copy(), S2)
+    C11 = C11 + P
+    C21 = C21 + P
 
     result = Matrix([[0 for x in range(B.num_of_cols)] for y in range(A.num_of_rows)], clone_matrix=False)
 

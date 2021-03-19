@@ -82,7 +82,7 @@ def strassen_matrix_mult(A: Matrix, B: Matrix) -> Matrix:
     original_nrows_A = A.num_of_rows
     original_ncols_B = B.num_of_cols
 
-    if max(A.num_of_rows, B.num_of_cols, A.num_of_cols) < 64:
+    if max(A.num_of_rows, B.num_of_cols, A.num_of_cols) < 32:
         return gauss_matrix_mult(A,B)
 
     if A.num_of_rows%2 != 0:
@@ -128,6 +128,135 @@ def strassen_matrix_mult(A: Matrix, B: Matrix) -> Matrix:
     result.assign_submatrix(0,result.num_of_cols//2, C12)
     result.assign_submatrix(result.num_of_rows//2,0,C21)
     result.assign_submatrix(result.num_of_rows//2,result.num_of_cols//2, C22)
+
+    result = result.submatrix(0, original_nrows_A, 0, original_ncols_B)
+
+    return result
+
+def strassen_matrix_mult_memory(A: Matrix, B: Matrix) -> Matrix:
+    ''' Multiply two matrices by using Strassen's algorithm
+
+    Parameters
+    ----------
+    A: Matrix
+        The first matrix to be multiplied
+    B: Matrix
+        The second matrix to be multiplied
+
+    Returns
+    -------
+    Matrix
+        The matrix computed following the Strassen's algorithm procedure
+    '''
+
+    original_nrows_A = A.num_of_rows
+    original_ncols_B = B.num_of_cols
+
+    if max(A.num_of_rows, B.num_of_cols, A.num_of_cols) < 32:
+        return gauss_matrix_mult(A,B)
+
+    if A.num_of_rows%2 != 0:
+        A.append_null_row()
+
+    if A.num_of_cols%2 != 0:
+        A.append_null_column()
+        B.append_null_row()
+
+    if B.num_of_cols%2 != 0:
+        B.append_null_column()
+
+    A11, A12, A21, A22 = get_matrix_quadrants(A)
+    B11, B12, B21, B22 = get_matrix_quadrants(B)
+
+    # S1 = B12 - B22
+    # S2 = A11 + A12
+    # S3 = A21 + A22
+    # S4 = B21 - B11
+    # S5 = A11 + A22
+    # S6 = B11 + B22
+    # S7 = A12 - A22
+    # S8 = B21 + B22
+    # S9 = A11 - A21
+    # S10 = B11 + B12
+
+    # P1 = strassen_matrix_mult(A11, S1)
+    # P2 = strassen_matrix_mult(S2, B22)
+    # P3 = strassen_matrix_mult(S3, B11)
+    # P4 = strassen_matrix_mult(A22, S4)
+    # P5 = strassen_matrix_mult(S5, S6)
+    # P6 = strassen_matrix_mult(S7, S8)
+    # P7 = strassen_matrix_mult(S9, S10)
+
+    # C11 = P5 + P4 - P2 + P6
+    # C12 = P1 + P2 
+    # C21 = P3 + P4
+    # C22 = P5 + P1 - P3 - P7
+
+    # S5
+    S1 = A11+A22
+    # S6
+    S2 = B11+B22
+    # P5
+    P = strassen_matrix_mult_memory(S1,S2)
+    # First quadrant of output
+    C11 = P
+    # Fourth quadrant of output
+    C22 = P
+    # S4
+    S1 = B21-B11
+    # P4
+    P = strassen_matrix_mult_memory(A22,S1)
+    # Update first quadrant of output
+    C11 = C11+P
+    # Third quadrant of output
+    C21 = P
+    # S2
+    S1 = A11+A12
+    # P2
+    P = strassen_matrix_mult_memory(S1,B22)
+    # Update first quadrant of output
+    C11 = C11-P
+    # Second quadrant of output
+    C12 = P
+    # S7
+    S1 = A12-A22
+    # S8
+    S2 = B21+B22
+    # P6
+    P = strassen_matrix_mult_memory(S1,S2)
+    # Update first quadrant of output
+    C11 = C11+P
+    # S1
+    S1 = B12-B22
+    # P1
+    P = strassen_matrix_mult_memory(A11,S1)
+    # Update second quadrant of output
+    C12 = C12+P
+    # Update fourth quadrant of output
+    C22 = C22+P
+    # S3
+    S1 = A21+A22
+    # P3
+    P = strassen_matrix_mult_memory(S1,B11)
+    # Update third quadrant of output
+    C21 = C21+P
+    # Update fourth quadrant of output
+    C22 = C22-P
+    # S9
+    S1 = A11-A21
+    # S10
+    S2 = B11+B12
+    # P7
+    P = strassen_matrix_mult_memory(S1,S2)
+    # Update fourth quadrant of output
+    C22 = C22-P
+
+    result = Matrix([[0 for x in range(B.num_of_cols)] for y in range(A.num_of_rows)], clone_matrix=False)
+
+    result.assign_submatrix(0, 0, C11)
+    result.assign_submatrix(0, result.num_of_cols//2, C12)
+    result.assign_submatrix(result.num_of_rows//2, 0, C21)
+    result.assign_submatrix(result.num_of_rows//2, result.num_of_cols//2, C22)
 
     result = result.submatrix(0, original_nrows_A, 0, original_ncols_B)
 

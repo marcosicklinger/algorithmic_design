@@ -79,9 +79,11 @@ def strassen_matrix_mult(A: Matrix, B: Matrix) -> Matrix:
         The matrix computed following the Strassen's algorithm procedure
     '''
     
+    # save original size of matrices
     original_nrows_A = A.num_of_rows
     original_ncols_B = B.num_of_cols
 
+    # check if size is even or odd: add one to the size if it is odd
     if max(A.num_of_rows, B.num_of_cols, A.num_of_cols) < 32:
         return gauss_matrix_mult(A,B)
 
@@ -129,6 +131,7 @@ def strassen_matrix_mult(A: Matrix, B: Matrix) -> Matrix:
     result.assign_submatrix(result.num_of_rows//2,0,C21)
     result.assign_submatrix(result.num_of_rows//2,result.num_of_cols//2, C22)
 
+    # obtain final matrix by excluding row/column added before
     result = result.submatrix(0, original_nrows_A, 0, original_ncols_B)
 
     return result

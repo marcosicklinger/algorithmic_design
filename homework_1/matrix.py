@@ -528,7 +528,7 @@ if __name__ == '__main__':
 
     seed(0)
 
-    f = open("original.txt","w")
+    f = open("matrix_mult.txt","w")
 
     for i in range(12):
         size = 2**i

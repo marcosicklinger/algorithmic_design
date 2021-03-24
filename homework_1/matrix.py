@@ -168,30 +168,6 @@ def strassen_matrix_mult_memory(A: Matrix, B: Matrix) -> Matrix:
     A11, A12, A21, A22 = get_matrix_quadrants(A)
     B11, B12, B21, B22 = get_matrix_quadrants(B)
 
-    # S1 = B12 - B22
-    # S2 = A11 + A12
-    # S3 = A21 + A22
-    # S4 = B21 - B11
-    # S5 = A11 + A22
-    # S6 = B11 + B22
-    # S7 = A12 - A22
-    # S8 = B21 + B22
-    # S9 = A11 - A21
-    # S10 = B11 + B12
-
-    # P1 = strassen_matrix_mult(A11, S1)
-    # P2 = strassen_matrix_mult(S2, B22)
-    # P3 = strassen_matrix_mult(S3, B11)
-    # P4 = strassen_matrix_mult(A22, S4)
-    # P5 = strassen_matrix_mult(S5, S6)
-    # P6 = strassen_matrix_mult(S7, S8)
-    # P7 = strassen_matrix_mult(S9, S10)
-
-    # C11 = P5 + P4 - P2 + P6
-    # C12 = P1 + P2 
-    # C21 = P3 + P4
-    # C22 = P5 + P1 - P3 - P7
-
     S1 = A11 + A22
     S2 = B11 + B22
     P = strassen_matrix_mult_memory(S1, S2)
@@ -209,27 +185,23 @@ def strassen_matrix_mult_memory(A: Matrix, B: Matrix) -> Matrix:
     C11 = C11 + P
 
     S1 = A11 + A12
-    #S2 = B22.copy()
     P = strassen_matrix_mult_memory(S1, B22.copy())
     C12 = P
     C11 = C11 - P
 
     S1 = B12 - B22
-    #S2 = A11.copy()
     P = strassen_matrix_mult_memory(A11.copy(), S1)
     C12 = C12 + P
     C22 = C22 + P
 
 
     S1 = A21 + A22
-    #S2 = B11.copy()
     P = strassen_matrix_mult_memory(S1, B11.copy())
     C21 = P
     C22 = C22 - P
 
 
     S2 = B21 - B11
-    #S1 = A22.copy()
     P = strassen_matrix_mult_memory(A22.copy(), S2)
     C11 = C11 + P
     C21 = C21 + P

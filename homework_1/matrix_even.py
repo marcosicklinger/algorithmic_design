@@ -79,6 +79,7 @@ def strassen_matrix_mult(A: Matrix, B: Matrix) -> Matrix:
         The matrix computed following the Strassen's algorithm procedure
     '''
 
+    # check if sizes are even
     if A.num_of_rows%2 != 0 or A.num_of_cols%2 != 0 or B.num_of_cols%2 != 0:
         raise ValueError('Not even size')
 

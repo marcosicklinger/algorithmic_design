@@ -332,6 +332,106 @@ def bi_relax(H, vertice1, vertice2, weight, passage, graph):
         else:
             graph.Dictionary[key_vertice2_graph].predecessor = graph.Dictionary[key_vertice1_graph]
 
+def most_important_to_source(most_important, up=True):
+    """ Function for computing a path from most important node to a source
+
+    Parameters
+    ----------
+    most_important: Node\n
+        \tnode from which, following predecessors, one gets to the beginning of the path
+    up: bool\n
+        \tboolean for chosing which path to build, if the one from the most important node
+        \tto the start or to the end  
+    """
+
+    path = [most_important]
+
+    # follow predecessors
+    step = most_important.predecessor
+    while step is not None:
+        path = [step] + path
+        step = step.predecessor
+
+    if not up:
+        return path[::-1]
+
+    return path
+
+def source_to_source(most_important_up, most_important_down):
+    """ Function for computing the complete path from a source to another
+
+    Parameters
+    ----------
+    most_important_up: Node\n
+        \tmost important node in the path, contained in graph_up
+    most_important_down: Node\n
+        \tmost important node in the path, contained in graph_down
+    """
+
+    return most_important_to_source(most_important_up)[:-1] + most_important_to_source(most_important_down, up=False)
+
+def one_way_path(most_important, total_distance, to_source2, to_source1):
+    """ Function for returing correct path from source to most important node
+        or viceversa
+
+    Parameters
+    ----------
+    most_important: Node\n
+        \tmost important node in the path
+    total_distance: Number\n
+        \tdistance computed up to when the node removed from one of the heap equals
+        \tone of the sources
+    to_source2, to_source1: List[Number, Node]\n
+        \tlist containg the distance computed from the beginning to when the other source
+        \tgets visited in the same type of graph (graph_up or graph_down)
+    """
+
+    if total_distance == min(total_distance, to_source2[0], to_source1[0]):
+        return most_important_to_source(most_important), total_distance
+    elif to_source2[0] == min(total_distance, to_source2[0], to_source1[0]):
+        return most_important_to_source(to_source2[1]), to_source2[0]
+    else:
+        return most_important_to_source(to_source1[1], up=False), to_source1[0]
+
+def path(most_important_up, most_important_down, total_distance, to_source2, to_source1):
+    """ Function for returning correct path from source to source
+
+    Parameters
+    ----------
+    most_important_up: Node\n
+        \tmost important node in the path, contained in graph_up
+    most_important_down: Node\n
+        \tmost important node in the path, contained in graph_down
+    total_distance: Number\n
+        \tdistance computed up to when the node removed from one of the heap equals
+        \tone of the sources
+    to_source2, to_source1: List[Number, Node]\n
+        \tlist containg the distance computed from the beginning to when the other source
+        \tgets visited in the same type of graph (graph_up or graph_down)
+    """
+
+    if total_distance == min(total_distance, to_source2[0], to_source1[0]):
+        return source_to_source(most_important_up, most_important_down), total_distance
+    elif to_source2[0] == min(total_distance, to_source2[0], to_source1[0]):
+        return most_important_to_source(to_source2[1]), to_source2[0]
+    else:
+        return most_important_to_source(to_source1[1], up=False), to_source1[0]  
+
+def update_predecessors(graph, path):
+    """ Function for returning graph updated with correct predecessors in the path
+
+    Parameters
+    ----------
+    graph: WeightedGraph\n
+        \tgraph object containing the path
+    path: List[Node]\n
+        \tpath found in the graph
+    """
+
+    for i in range(1,len(path)):
+        graph.Dictionary[graph.Keys[graph.Vertices.index(path[i])]].predecessor = copy.deepcopy(path[i-1])
+        
+
 def bi_dijkstra(graph, source1, source2):
     """ Function for implementing bidirectional version of dijkstra algorithm
 
@@ -347,38 +447,54 @@ def bi_dijkstra(graph, source1, source2):
 
     graph_up, graph_down, H_up, H_down = framework(graph, source1, source2)
 
-    found_source2_after = np.Inf
-    found_source1_after = np.Inf
+    found_source2_after = [np.Inf, None]
+    found_source1_after = [np.Inf, None]
     min_down = None
     while not H_up.is_empty() or H_down.is_empty():
 
         min_up = H_up.remove_min()
 
+        # if newly extracted node from H_up is equal to destination,end process,
+        # taking into account also previously stored distances and nodes of the 
+        # destination found in some adjacent lists
         if min_up == graph.Dictionary[source2]:
-            return min(min_up.distance, found_source2_after, found_source1_after)
+
+            return one_way_path(min_up, min_up.distance, found_source2_after, found_source1_after)
         
         for passage, vertice, weight in min_up.adj_list:
 
-            bi_relax(H_up, min_up, graph_up.Dictionary[vertice], weight, passage, graph)
-
+            bi_relax(H_up, min_up, graph_up.Dictionary[vertice], weight, passage, graph_up)
+    
+            # if destination is in the adjacent list, take that into account storing distance and node
             if vertice == source2:
-                found_source2_after = graph_up.Dictionary[vertice].distance
+                found_source2_after = [graph_up.Dictionary[vertice].distance, copy.deepcopy(graph_up.Dictionary[vertice])]
 
         if min_down is not None:
+            # if the newly extracted node from H_up is equal to the previously extracted node in H_down, end process
+            # taking into account also previously stored distances and nodes of the destination found in some adjacent lists
             if min_up == min_down:
-                return min(min_up.distance + min_down.distance, found_source2_after, found_source1_after)
+
+                return path(min_up, min_down, min_up.distance + min_down.distance, found_source2_after, found_source1_after)
 
         min_down = H_down.remove_min()
 
+        # if newly extracted node from H_down is equal to destination, end process
+        # taking into account also previously stored distances and nodes of the 
+        # destination found in some adjacent lists
         if min_down == graph.Dictionary[source1]:
-            return min(min_down.distance, found_source2_after, found_source1_after)
+
+            return one_way_path(min_down, min_down.distance, found_source2_after, found_source1_after)
         
         for passage, vertice, weight in min_down.ancestors:
 
-            bi_relax(H_down, min_down, graph_down.Dictionary[vertice], weight, passage, graph)
-
+            bi_relax(H_down, min_down, graph_down.Dictionary[vertice], weight, passage, graph_down)
+        
+            # if destination is in the adjacent list, take that into account storing distance and node
             if vertice == source1:
-                found_source1_after = graph_down.Dictionary[vertice].distance
+                found_source1_after = [graph_down.Dictionary[vertice].distance, copy.deepcopy(graph_down.Dictionary[vertice])]
 
+        # if the extracted nodes from H_up and H_down, end process taking into account also 
+        # previously stored distances and nodes of the destination found in some adjacent lists
         if min_up == min_down:
-            return min(min_up.distance + min_down.distance, found_source2_after, found_source1_after)
+
+            return path(min_up, min_down, min_up.distance + min_down.distance, found_source2_after, found_source1_after)

@@ -154,8 +154,6 @@ class WeightedGraph:
 
         for key in self._graph_dict:
 
-            self._graph_dict[key].ancestors = []
-
             if len(self._graph_dict[key].adj_list) != 0:
 
                 # the ancestor of each vertice in an adj list is the vertice whose

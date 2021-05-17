@@ -168,6 +168,10 @@ class WeightedGraph:
                         self._graph_dict[pair[1]].ancestors = []
 
                     self._graph_dict[pair[1]].ancestors.append(new_pair)
+        
+        for key in self._graph_dict:
+            if self._graph_dict[key].ancestors is None:
+                self._graph_dict[key].ancestors = []
 
     def Graph_Up(self):
         ''' Member function for computing the sub-graph of current graph whose vertices connects 

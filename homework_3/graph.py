@@ -178,7 +178,8 @@ class WeightedGraph:
             only with more important vertices
         '''
 
-        graph_up = {key: Node(value=self._graph_dict[key].value, importance=self._graph_dict[key].importance) for key in self._graph_dict}
+        graph_up = {key: Node(value=self._graph_dict[key].value, distance=self._graph_dict[key].distance, importance=self._graph_dict[key].importance) 
+                    for key in self._graph_dict}
 
         new_adj_list = {}
         
@@ -201,7 +202,8 @@ class WeightedGraph:
             only with less important vertices
         '''
 
-        graph_down = {key: Node(value=self._graph_dict[key].value, importance=self._graph_dict[key].importance) for key in self._graph_dict}
+        graph_down = {key: Node(value=self._graph_dict[key].value, distance=self._graph_dict[key].distance, importance=self._graph_dict[key].importance) 
+                    for key in self._graph_dict}
 
         new_adj_list = {}
 

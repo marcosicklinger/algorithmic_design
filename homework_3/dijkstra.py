@@ -168,7 +168,8 @@ def build_shortcuts(graph):
 
     # check if shortcuts are already present
     if graph.shortcutted >= 1:
-        return
+        for key in graph.Keys:
+            graph.Dictionary[key].shortcuts = None
     else:
         graph.shortcutted = 1
 
